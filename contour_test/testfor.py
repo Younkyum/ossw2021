@@ -1,16 +1,15 @@
 import cv2
-import numpy as np
 
-img_rgb = cv2.imread('test1.png')
-template = cv2.imread('/gdrive/MyDrive/cropStudy/answer_temp.png')
-h, w = template.shape[:-1]
+src = cv2.imread("src.png", cv2.IMREAD_GRAYSCALE)
+templit = cv2.imread("temp.png", cv2.IMREAD_GRAYSCALE)
+dst = cv2.imread("src.png")
 
-res = cv2.matchTemplate(img_rgb, template, cv2.TM_CCOEFF_NORMED)
-threshold = .65
-loc = np.where(res >= threshold)
+result = cv2.matchTemplate(src, templit, cv2.TM_SQDIFF_NORMED)
 
-for pt in zip(*loc[::-1]):  # Switch collumns and rows
-    print(pt)
-    cv2.rectangle(img_rgb, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
+minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(result)
+x, y = minLoc
+h, w = templit.shape
 
-cv2_imshow(img_rgb)
+dst = cv2.rectangle(dst, (x, y), (x +  w, y + h) , (0, 0, 255), 1)
+cv2.imshow("dst", dst)
+cv2.waitKey(0)
