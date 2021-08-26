@@ -1,43 +1,37 @@
 from PIL import Image
-import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
+import numpy as np
 import tensorflow as tf
 from tensorflow.keras.layers import Flatten, Dense
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import Model
 
-BATCH_SIZE = 64
 EPOCH_SIZE = 64
 
 
-def birb_gen(batch_size=32):
+def natural_birb_gen(batch_size=32):
     birb_pil = Image.open("birb.png")
-    birb_pil = birb_pil.resize((64, 64))
-    birb = np.asarray(birb_pil)
 
     while True:
         X = np.zeros((batch_size, 128, 128, 3))
         Y = np.zeros((batch_size, 3))
 
         for i in range(batch_size):
-            size = np.random.randint(32, 64)
-            temp_birb = birb_pil.resize((size, size))
-            birb = np.asarray(temp_birb) / 255.0
-            birb_x, birb_y, _ = birb.shape
+            size = np.random.randint(24, 84)
+            birb_temp = birb_pil.resize((size, size))
+            bg = Image.open("background/{0}.jpg".format(np.random.randint(1, 5)))
+            bg = bg.resize((128, 128))
 
-            bg = Image.new('RGB', (128, 128))
+            xPos = np.random.randint(0, 128 - size)
+            yPos = np.random.randint(0, 128 - size)
 
-            x1 = np.random.randint(1, 128 - birb_x)
-            y1 = np.random.randint(1, 128 - birb_y)
+            bg.paste(birb_temp, (xPos, yPos), mask=birb_temp)
 
-            bg.paste(temp_birb, (x1, y1))
-            birb = np.asarray(bg) / 255.0
-
-            X[i] = birb
-            Y[i, 0] = x1 / 128.0
-            Y[i, 1] = y1 / 128.0
-            Y[i, 2] = birb_x / 128.
+            X[i] = np.asarray(bg) / 255.
+            Y[i, 0] = xPos / 128.
+            Y[i, 1] = yPos / 128.
+            Y[i, 2] = size / 128.
 
         yield X, Y
 
@@ -47,12 +41,13 @@ def plot_pred(img, p):
     ax.imshow(img)
     rect = Rectangle(xy=(p[0]*128, p[1]*128), width=p[2]*128, height=p[2]*128, linewidth=1, edgecolor='g', facecolor='none')
     ax.add_patch(rect)
+
     plt.show()
 
 
 try:
     model = tf.keras.models.load_model(
-        'E:/Coding/Projects/ossw2021_COSMITH/git/symbol_detection/models/saved_semi_synthetic_model')   # 경로는 적절히 바꿔서 사용할 것
+        'E:/Coding/Projects/ossw2021_COSMITH/git/symbol_detection/models/saved_natural_synthetic_model')   # 경로는 적절히 바꿔서 사용할 것
 
 except OSError:
     print("Model not found! Making a new one...")
@@ -63,11 +58,11 @@ except OSError:
     model = Model(vgg.input, x)
     model.compile(loss='binary_crossentropy', optimizer=Adam(learning_rate=0.001))
 
-    model.fit_generator(birb_gen(), steps_per_epoch=EPOCH_SIZE, epochs=10)
-    model.save('models/saved_semi_synthetic_model')
+    model.fit_generator(natural_birb_gen(), steps_per_epoch=EPOCH_SIZE, epochs=10)
+    model.save('models/saved_natural_synthetic_model')
 
 else:
-    x, _ = next(birb_gen())
+    x, _ = next(natural_birb_gen())
 
     pred = model.predict(x)
 
