@@ -70,4 +70,3 @@ else:
     for img in x:
         plot_pred(img, pred[cnt])
         cnt += 1
-
