@@ -58,7 +58,7 @@ image_set = np.asarray(image_set)
 print(image_set.shape)
 
 model = tf.keras.models.load_model(
-            'E:/Coding/Projects/ossw2021_COSMITH/git/symbol_detection/models/saved_symbol_detection_model_VGG16')
+            "saved_symbol_detection_model_VGG16")
 
 pred = model.predict(image_set)
 
