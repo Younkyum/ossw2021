@@ -1,6 +1,7 @@
 from PIL import Image
 import numpy as np
 from os import listdir
+from os.path import isfile
 import cv2
 import tensorflow as tf
 import io
@@ -8,17 +9,25 @@ from google.cloud import vision
 from google.cloud.vision_v1 import types
 
 
-def detect_text(img):
+def detect_text():
+    with io.open("dataset/prediction/out.jpg", 'rb') as image_file:
+        content = image_file.read()
+
     client = vision.ImageAnnotatorClient.from_service_account_json("western-verve-325505-3fda9294d9f6.json")
 
-    image = types.Image(content=cv2.imencode('.jpg', img)[1].tostring())
+    image = types.Image(content=content)
 
     response = client.text_detection(image=image)
     texts = response.text_annotations
     print('Texts:')
 
     for text in texts:
-        print(text)
+        print('\n"{}"'.format(text.description))
+
+        vertices = (['({},{})'.format(vertex.x, vertex.y)
+                     for vertex in text.bounding_poly.vertices])
+
+        print('bounds: {}'.format(','.join(vertices)))
 
 
 def plot_pred(img, p):
@@ -27,10 +36,11 @@ def plot_pred(img, p):
     p = p.astype(int)
     img = img[p[1]:p[1] + p[2], p[0]:p[0] + p[2]]
 
-    # detect_text(img)
-
     cv2.imshow("Output", img)
     cv2.waitKey()
+
+    img *= 255
+    cv2.imwrite("dataset/prediction/out.jpg", img)
 
     return Image.fromarray(img.astype(np.uint8))
 
@@ -54,6 +64,6 @@ pred = model.predict(image_set)
 
 cnt = 0
 for img in image_set:
-    # text = image_to_string(plot_pred(img, pred[cnt]), lang="kor")
     plot_pred(img, pred[cnt])
+    detect_text()
     cnt += 1
