@@ -1,19 +1,29 @@
 import io
 import os
 from google.cloud import vision
-from google.cloud.vision import types
+# from google.cloud.vision import types
 
-client = vision.ImageAnnotatorClient()
 
-file_name = os.path.join( os.path.dirname(__file__), 'filename')
+def detect_text(path):
+    from google.cloud import vision
+    client = vision.ImageAnnotatorClient()
 
-with io.open(file_name, 'rb') as image_file:
-    content = image_file.read()
+    with io.open(path, 'rb') as image_file:
+        content = image_file.read()
 
-image = types.Image(content=content)
+    image = vision.types.Image(content=content)
 
-response = client.label_detectio(image=image)
-labels = response.label_annotations
+    response = client.text_detection(image=image)
+    texts = response.text_annotations
+    print('Texts:')
 
-for label in labels:
-    print(label.description)
+    for text in texts:
+        print('\n"{}"'.format(text.description))
+
+        vertices = (['({},{})'.format(vertex.x, vertex.y)
+                    for vertex in text.bounding_poly.vertices])
+
+        print('bounds: {}'.format(','.join(vertices)))
+
+
+detect_text(file_name)

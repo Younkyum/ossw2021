@@ -3,7 +3,22 @@ import numpy as np
 from os import listdir
 import cv2
 import tensorflow as tf
-from pytesseract import *
+import io
+from google.cloud import vision
+from google.cloud.vision_v1 import types
+
+
+def detect_text(img):
+    client = vision.ImageAnnotatorClient.from_service_account_json("western-verve-325505-3fda9294d9f6.json")
+
+    image = types.Image(content=cv2.imencode('.jpg', img)[1].tostring())
+
+    response = client.text_detection(image=image)
+    texts = response.text_annotations
+    print('Texts:')
+
+    for text in texts:
+        print(text)
 
 
 def plot_pred(img, p):
@@ -12,8 +27,11 @@ def plot_pred(img, p):
     p = p.astype(int)
     img = img[p[1]:p[1] + p[2], p[0]:p[0] + p[2]]
 
+    # detect_text(img)
+
     cv2.imshow("Output", img)
     cv2.waitKey()
+
     return Image.fromarray(img.astype(np.uint8))
 
 
@@ -36,7 +54,6 @@ pred = model.predict(image_set)
 
 cnt = 0
 for img in image_set:
-    # plot_pred(img, pred[cnt])
-    text = image_to_string(plot_pred(img, pred[cnt]), lang="kor")
-    print(text)
+    # text = image_to_string(plot_pred(img, pred[cnt]), lang="kor")
+    plot_pred(img, pred[cnt])
     cnt += 1
