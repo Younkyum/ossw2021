@@ -11,11 +11,10 @@ def plot_pred(img, p):
     p *= IMAGE_SIZE
     p = p.astype(int)
     img = img[p[1]:p[1] + p[2], p[0]:p[0] + p[2]]
-    # rect = Rectangle(xy=(p[0], p[1]), width=p[2], height=p[2], linewidth=2, edgecolor='g',
-    #                 facecolor='none')
-    # ax.add_patch(rect)
 
-    return img
+    cv2.imshow("Output", img)
+    cv2.waitKey()
+    return Image.fromarray(img.astype(np.uint8))
 
 
 path = "dataset/test/"
@@ -37,7 +36,7 @@ pred = model.predict(image_set)
 
 cnt = 0
 for img in image_set:
-    image = Image.fromarray(plot_pred(img, pred[cnt]))
-    text = image_to_string(image, lang="kor")
+    # plot_pred(img, pred[cnt])
+    text = image_to_string(plot_pred(img, pred[cnt]), lang="kor")
     print(text)
     cnt += 1
